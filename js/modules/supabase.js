@@ -61,7 +61,7 @@ export async function fetchProducts({
   limit = null,
   orderBy = 'created_at.desc',
 } = {}) {
-  let query = 'products?select=id,category_id,name,brand,model,description,stock,sale_price,image_url,created_at';
+  let query = 'products?select=id,category_id,name,brand,model,description,stock,sale_price,image_url,created_at,tags,units_per_package';
 
   const filters = [];
 
@@ -95,7 +95,7 @@ export async function fetchProducts({
  */
 export async function fetchProductById(id) {
   const rows = await supabaseFetch(
-    `products?select=id,category_id,name,brand,model,description,stock,sale_price,image_url,created_at&id=eq.${encodeURIComponent(id)}`
+    `products?select=id,category_id,name,brand,model,description,stock,sale_price,image_url,created_at,tags,units_per_package&id=eq.${encodeURIComponent(id)}`
   );
   return rows?.[0] || null;
 }

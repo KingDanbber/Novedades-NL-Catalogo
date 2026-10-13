@@ -145,33 +145,32 @@ export function clearCart() {
 
 /**
  * Build a human-readable order summary for WhatsApp
+ * @param {string} customerName
+ * @param {string} area
  */
-export function buildOrderSummary() {
+export function buildOrderSummary(customerName, area) {
   const items = getCartItems();
   if (!items.length) return '';
 
   const lines = [
-    '🛒 *Pedido Novedades N&L*',
-    '────────────────────',
+    `Hola, soy ${customerName} de ${area}.`,
+    'Quiero comprar:',
     '',
   ];
 
-  items.forEach((item, i) => {
+  items.forEach((item) => {
     const price = Number(item.sale_price) || 0;
+    const units = Number(item.units_per_package) || 1;
+    const packageNote = units > 1 ? ` (paquete de ${units} uds)` : '';
     lines.push(
-      `${i + 1}. *${item.name}*`,
-      `   Cantidad: ${item.quantity}`,
-      `   Precio: $${price.toFixed(2)} c/u`,
-      `   Subtotal: $${item.subtotal.toFixed(2)}`,
-      ''
+      `${item.name} × ${item.quantity} — $${price.toFixed(2)}${packageNote}`
     );
   });
 
   const total = getCartTotal();
-  lines.push('────────────────────');
-  lines.push(`*TOTAL: $${total.toFixed(2)}*`);
   lines.push('');
-  lines.push('¡Hola! Me interesa este pedido 😊');
+  lines.push(`Total: $${total.toFixed(2)}`);
+  lines.push('Gracias.');
 
   return lines.join('\n');
 }

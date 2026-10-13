@@ -161,6 +161,8 @@ function renderTags() {
     });
   });
 }
+
+function renderCategories() {
   const container = $('#categories-scroll');
   if (!container) return;
 

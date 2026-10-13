@@ -32,6 +32,7 @@ let categories = [];
 let products = [];
 let filteredProducts = [];
 let activeCategoryId = null;
+let activeTag = null;
 let searchQuery = '';
 let isLoading = true;
 let hasError = false;
@@ -83,6 +84,7 @@ async function loadData() {
 
     applyFilters();
     renderCategories();
+    renderTags();
     isLoading = false;
     hasError = false;
   } catch (err) {
@@ -103,6 +105,10 @@ function applyFilters() {
     list = list.filter((p) => p.category_id === activeCategoryId);
   }
 
+  if (activeTag) {
+    list = list.filter((p) => (p.tags || '').toLowerCase() === activeTag.toLowerCase());
+  }
+
   if (searchQuery.trim()) {
     const q = searchQuery.trim().toLowerCase();
     list = list.filter((p) => (p.name || '').toLowerCase().includes(q));
@@ -112,7 +118,49 @@ function applyFilters() {
 }
 
 // ========== RENDER ==========
-function renderCategories() {
+const TAGS = [
+  'Electrónica',
+  'Hogar',
+  'Ropa',
+  'Herramientas',
+  'Navideño',
+  'Cocina',
+  'Tecnología',
+  'Otros',
+];
+
+function renderTags() {
+  const container = $('#tags-scroll');
+  if (!container) return;
+
+  const allChip = `
+    <button class="tag-chip ${!activeTag ? 'tag-chip--active' : ''}" data-tag="">
+      Todas
+    </button>
+  `;
+
+  const chips = TAGS
+    .map(
+      (tag) => `
+    <button class="tag-chip ${activeTag === tag ? 'tag-chip--active' : ''}" data-tag="${escapeHtml(tag)}">
+      ${escapeHtml(tag)}
+    </button>
+  `
+    )
+    .join('');
+
+  container.innerHTML = allChip + chips;
+
+  container.querySelectorAll('.tag-chip').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      activeTag = btn.dataset.tag || null;
+      applyFilters();
+      renderTags();
+      renderProducts();
+      $('#products-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+}
   const container = $('#categories-scroll');
   if (!container) return;
 
@@ -185,7 +233,7 @@ function renderProducts() {
   }
 
   if (filteredProducts.length === 0) {
-    const msg = searchQuery || activeCategoryId
+    const msg = searchQuery || activeCategoryId || activeTag
       ? 'No encontramos productos con esos filtros.'
       : 'Aún no hay productos disponibles. ¡Vuelve pronto!';
     grid.innerHTML = `
@@ -193,11 +241,12 @@ function renderProducts() {
         <div class="state-block__icon">${icons.package}</div>
         <h3 class="state-block__title">Sin productos</h3>
         <p class="state-block__text">${msg}</p>
-        ${(searchQuery || activeCategoryId) ? '<button class="btn btn--outline" id="clear-filters-btn">Limpiar filtros</button>' : ''}
+        ${(searchQuery || activeCategoryId || activeTag) ? '<button class="btn btn--outline" id="clear-filters-btn">Limpiar filtros</button>' : ''}
       </div>
     `;
     $('#clear-filters-btn')?.addEventListener('click', () => {
       activeCategoryId = null;
+      activeTag = null;
       searchQuery = '';
       const searchInput = $('#header-search-input');
       const mobileInput = $('#mobile-search-input');
@@ -205,6 +254,7 @@ function renderProducts() {
       if (mobileInput) mobileInput.value = '';
       applyFilters();
       renderCategories();
+      renderTags();
       renderProducts();
     });
     if (countEl) countEl.textContent = '0 productos';
@@ -223,6 +273,8 @@ function renderProducts() {
         : `<div class="product-card__img--placeholder">${icons.image}</div>`;
 
       const isNew = isRecent(p.created_at);
+      const units = Number(p.units_per_package) || 1;
+      const packageLabel = units > 1 ? `<span class="product-card__package">Paquete de ${units} uds</span>` : '';
 
       return `
         <article class="product-card animate-fade-in-up" style="animation-delay: ${Math.min(i * 0.04, 0.4)}s" data-id="${escapeHtml(p.id)}">
@@ -236,7 +288,8 @@ function renderProducts() {
           <div class="product-card__body">
             ${catName ? `<span class="product-card__category">${escapeHtml(catName)}</span>` : ''}
             <h3 class="product-card__name">${escapeHtml(p.name)}</h3>
-            <p class="product-card__price">${formatPrice(p.sale_price)}</p>
+            ${packageLabel}
+            <p class="product-card__price">${formatPrice(p.sale_price)}${units > 1 ? ' / paquete' : ''}</p>
           </div>
         </article>
       `;
@@ -287,6 +340,9 @@ function openProductDetail(product) {
     ? `<img class="product-detail__img" src="${escapeHtml(product.image_url)}" alt="${escapeHtml(product.name)}">`
     : `<div class="product-detail__img--placeholder">${icons.image}</div>`;
 
+  const units = Number(product.units_per_package) || 1;
+  const packageNote = units > 1 ? `<span class="product-detail__package">Paquete de ${units} unidades</span>` : '';
+
   modalBody.innerHTML = `
     <div class="product-detail__img-wrap">
       ${imgHtml}
@@ -294,12 +350,13 @@ function openProductDetail(product) {
     <div class="product-detail__content">
       ${catName ? `<span class="product-detail__category">${escapeHtml(catName)}</span>` : ''}
       <h2 class="product-detail__name">${escapeHtml(product.name)}</h2>
+      ${packageNote}
       <div class="product-detail__meta">
         ${product.brand ? `<span>Marca: <strong>${escapeHtml(product.brand)}</strong></span>` : ''}
         ${product.model ? `<span>Modelo: <strong>${escapeHtml(product.model)}</strong></span>` : ''}
         ${product.stock != null ? `<span>Stock: <strong>${product.stock}</strong></span>` : ''}
       </div>
-      <p class="product-detail__price">${formatPrice(product.sale_price)}</p>
+      <p class="product-detail__price">${formatPrice(product.sale_price)}${units > 1 ? ' / paquete' : ''}</p>
       ${product.description ? `<p class="product-detail__desc">${escapeHtml(product.description)}</p>` : ''}
       <div class="product-detail__actions">
         <div class="product-detail__qty">
@@ -388,12 +445,16 @@ function renderCartItems() {
         ? `<img class="cart-item__img" src="${escapeHtml(item.image_url)}" alt="">`
         : `<div class="cart-item__img cart-item__img--placeholder">${icons.image}</div>`;
 
+      const units = Number(item.units_per_package) || 1;
+      const packageNote = units > 1 ? `<span class="cart-item__package">Paquete de ${units} uds</span>` : '';
+
       return `
         <div class="cart-item" data-id="${escapeHtml(item.id)}">
           ${img}
           <div class="cart-item__info">
             <p class="cart-item__name">${escapeHtml(item.name)}</p>
-            <p class="cart-item__price">${formatPrice(item.sale_price)}</p>
+            ${packageNote}
+            <p class="cart-item__price">${formatPrice(item.sale_price)}${units > 1 ? ' / paq.' : ''}</p>
             <div class="cart-item__controls">
               <div class="cart-item__qty">
                 <button type="button" data-qty-minus="${escapeHtml(item.id)}" aria-label="Menos">${icons.minus}</button>
@@ -440,24 +501,48 @@ function renderCartItems() {
 }
 
 // ========== WHATSAPP ORDER ==========
+const SELLERS = {
+  luis: { name: 'Luis Arturo', phone: '528715118046' },
+  norma: { name: 'Norma Padilla', phone: '528718450065' },
+};
+
 async function continueToWhatsApp() {
-  const summary = buildOrderSummary();
+  const nameInput = $('#customer-name');
+  const areaInput = $('#customer-area');
+  const sellerSelect = $('#seller-select');
+
+  const customerName = nameInput?.value.trim();
+  const area = areaInput?.value.trim();
+  const sellerKey = sellerSelect?.value;
+
+  if (!customerName || !area || !sellerKey) {
+    showToast('Completa nombre, área y vendedor', 'default');
+    if (nameInput) nameInput.focus();
+    return;
+  }
+
+  const summary = buildOrderSummary(customerName, area);
   if (!summary) {
     showToast('El carrito está vacío');
     return;
   }
 
-  // Copy summary to clipboard
-  try {
-    await navigator.clipboard.writeText(summary);
-    showToast('Resumen copiado. Pégalo en el grupo 📋', 'success', 3500);
-  } catch {
-    // Fallback: show in prompt or just open
-    showToast('Abre el grupo y pega tu pedido', 'default', 3000);
+  const seller = SELLERS[sellerKey];
+  if (!seller) {
+    showToast('Selecciona un vendedor válido');
+    return;
   }
 
-  // Open WhatsApp group
-  window.open(WHATSAPP_GROUP, '_blank', 'noopener,noreferrer');
+  const encodedMessage = encodeURIComponent(summary);
+  const waUrl = `https://wa.me/${seller.phone}?text=${encodedMessage}`;
+
+  // Open WhatsApp with prefilled message
+  window.open(waUrl, '_blank', 'noopener,noreferrer');
+
+  // Optional: clear form after sending (or keep for convenience)
+  // nameInput.value = '';
+  // areaInput.value = '';
+  // sellerSelect.value = '';
 }
 
 // ========== EVENTS ==========

@@ -103,6 +103,15 @@
     </div>
   </nav>
 
+  <!-- ========== TAGS ========== -->
+  <nav class="tags-bar" aria-label="Etiquetas">
+    <div class="container">
+      <div class="tags-bar__scroll" id="tags-scroll">
+        <!-- Filled by JS -->
+      </div>
+    </div>
+  </nav>
+
   <!-- ========== MAIN ========== -->
   <main class="main">
     <div class="container">
@@ -182,6 +191,24 @@
       <!-- Cart items rendered by JS -->
     </div>
     <div class="cart-drawer__footer hidden" id="cart-footer">
+      <div class="cart-form">
+        <div class="cart-form__field">
+          <label for="customer-name">Nombre *</label>
+          <input type="text" id="customer-name" placeholder="Tu nombre" required>
+        </div>
+        <div class="cart-form__field">
+          <label for="customer-area">Área / Colonia *</label>
+          <input type="text" id="customer-area" placeholder="Tu colonia o área" required>
+        </div>
+        <div class="cart-form__field">
+          <label for="seller-select">Vendedor que lo atienda *</label>
+          <select id="seller-select" required>
+            <option value="">Selecciona un vendedor</option>
+            <option value="luis">Luis Arturo — 8715118046</option>
+            <option value="norma">Norma Padilla — 8718450065</option>
+          </select>
+        </div>
+      </div>
       <div class="cart-drawer__total">
         <span>Total</span>
         <span class="cart-drawer__total-price" id="cart-total-price">$0.00</span>

@@ -23,7 +23,7 @@ No requiere build ni instalación de dependencias.
 - **URL**: `https://wehscgjwcarditwoymut.supabase.co`
 - **Tablas usadas**:
   - `categories` → `id`, `name`
-  - `products` → `id`, `category_id`, `name`, `brand`, `model`, `description`, `stock`, `sale_price`, `image_url`, `created_at`
+  - `products` → `id`, `category_id`, `name`, `brand`, `model`, `description`, `stock`, `sale_price`, `image_url`, `created_at`, `tags`, `units_per_package`
 - Se consulta la **REST API** con `fetch` y la clave publishable/anon.
 - Solo se muestran productos con `stock > 0`.
 - Precio público: `sale_price`.
@@ -37,22 +37,22 @@ Las imágenes ya están alojadas en Cloudinary (`cloud name: dzh0gjzet`). El cat
 
 ### WhatsApp
 
-Botón **“Continuar compra por WhatsApp”**:
+Al finalizar la compra el cliente llena:
+- Nombre
+- Área / Colonia
+- Vendedor (Luis Arturo o Norma Padilla)
 
-1. Copia al portapapeles un resumen del pedido (productos, cantidades y total).
-2. Abre el grupo:  
-   `https://chat.whatsapp.com/FoCLYnqe8ux5YZIjE0BXWK?s=cl&p=a&mlu=4&ilr=4`
-
-El administrador del grupo ve el pedido de un vistazo al pegar el mensaje.
+El botón **“Continuar compra por WhatsApp”** abre el chat del vendedor seleccionado con el mensaje del pedido prellenado (incluye paquetes si aplica).
 
 ## Características
 
 - Diseño único moderno (sin tema oscuro/toggle).
 - 100 % responsive, mobile-first.
 - Animaciones sutiles (entrada, hover, carrito, modales).
-- Filtro por categorías + búsqueda por nombre.
+- Filtro por categorías + filtro por etiquetas (`tags`) + búsqueda por nombre.
+- Muestra “Paquete de X unidades” cuando `units_per_package > 1`.
 - Detalle de producto en modal.
-- Carrito con persistencia en `localStorage`.
+- Carrito con persistencia en `localStorage` y datos del cliente.
 - Skeleton loading y estados de error / vacío.
 - Badge “Nuevo” en productos recientes (≤ 14 días).
 

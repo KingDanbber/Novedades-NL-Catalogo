@@ -271,7 +271,7 @@ function renderProducts() {
     .map((p, i) => {
       const catName = categoryMap.get(p.category_id) || '';
       const img = p.image_url
-        ? `<img class="product-card__img" src="${escapeHtml(p.image_url)}" alt="${escapeHtml(p.name)}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'product-card__img--placeholder\\'>${icons.image.replace(/'/g, "\\'")}</div>'">`
+        ? `<img class="product-card__img" src="${escapeHtml(p.image_url)}" alt="${escapeHtml(p.name)}" loading="lazy" data-fallback="1">`
         : `<div class="product-card__img--placeholder">${icons.image}</div>`;
 
       const isNew = isRecent(p.created_at);
@@ -305,6 +305,16 @@ function renderProducts() {
       const id = card.dataset.id;
       const product = products.find((p) => p.id === id);
       if (product) openProductDetail(product);
+    });
+  });
+
+  // Fallback for broken images
+  grid.querySelectorAll('img[data-fallback]').forEach((img) => {
+    img.addEventListener('error', function () {
+      const wrap = this.parentElement;
+      if (wrap && !wrap.querySelector('.product-card__img--placeholder')) {
+        wrap.innerHTML = `<div class="product-card__img--placeholder">${icons.image}</div>`;
+      }
     });
   });
 

@@ -57,7 +57,7 @@ export async function fetchCategories() {
 export async function fetchProducts({
   categoryId = null,
   search = '',
-  inStockOnly = true,
+  inStockOnly = false,
   limit = null,
   orderBy = 'created_at.desc',
 } = {}) {

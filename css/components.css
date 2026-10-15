@@ -157,9 +157,37 @@
   position: relative;
 }
 
-.product-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-card-hover);
+.product-card--out {
+  pointer-events: none;
+}
+
+.product-card--out .product-card__img,
+.product-card--out .product-card__body {
+  filter: blur(2px);
+  opacity: 0.55;
+}
+
+.product-card__out-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 23, 42, 0.35);
+  z-index: 3;
+  pointer-events: none;
+}
+
+.product-card__out-overlay span {
+  background: #EF4444;
+  color: #fff;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-md);
 }
 
 .product-card:active {

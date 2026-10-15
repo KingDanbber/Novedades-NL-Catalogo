@@ -73,7 +73,7 @@ async function loadData() {
   try {
     const [cats, prods] = await Promise.all([
       fetchCategories(),
-      fetchProducts({ inStockOnly: true }),
+      fetchProducts({ inStockOnly: false }),
     ]);
 
     categories = Array.isArray(cats) ? cats : [];
@@ -277,15 +277,15 @@ function renderProducts() {
       const isNew = isRecent(p.created_at);
       const units = Number(p.units_per_package) || 1;
       const packageLabel = units > 1 ? `<span class="product-card__package">Paquete de ${units} uds</span>` : '';
+      const isOutOfStock = Number(p.stock) <= 0;
 
       return `
-        <article class="product-card animate-fade-in-up" style="animation-delay: ${Math.min(i * 0.04, 0.4)}s" data-id="${escapeHtml(p.id)}">
+        <article class="product-card animate-fade-in-up ${isOutOfStock ? 'product-card--out' : ''}" style="animation-delay: ${Math.min(i * 0.04, 0.4)}s" data-id="${escapeHtml(p.id)}">
           <div class="product-card__img-wrap">
             ${img}
-            ${isNew ? '<span class="product-card__badge">Nuevo</span>' : ''}
-            <button class="product-card__add" data-add="${escapeHtml(p.id)}" aria-label="Agregar al carrito">
-              ${icons.plus}
-            </button>
+            ${isNew && !isOutOfStock ? '<span class="product-card__badge">Nuevo</span>' : ''}
+            ${isOutOfStock ? '<div class="product-card__out-overlay"><span>Agotado</span></div>' : ''}
+            ${!isOutOfStock ? `<button class="product-card__add" data-add="${escapeHtml(p.id)}" aria-label="Agregar al carrito">${icons.plus}</button>` : ''}
           </div>
           <div class="product-card__body">
             ${catName ? `<span class="product-card__category">${escapeHtml(catName)}</span>` : ''}
@@ -304,7 +304,7 @@ function renderProducts() {
       if (e.target.closest('[data-add]')) return;
       const id = card.dataset.id;
       const product = products.find((p) => p.id === id);
-      if (product) openProductDetail(product);
+      if (product && Number(product.stock) > 0) openProductDetail(product);
     });
   });
 
@@ -323,7 +323,7 @@ function renderProducts() {
       e.stopPropagation();
       const id = btn.dataset.add;
       const product = products.find((p) => p.id === id);
-      if (product) {
+      if (product && Number(product.stock) > 0) {
         addToCart(product, 1);
         showToast('Agregado al carrito', 'success');
         bounceCartBadge();
